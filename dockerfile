@@ -1,35 +1,22 @@
 FROM python:3.11-slim
 
-# ====== ENV ======
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV TMP_DIR=/tmp_videos
-
-# ====== SYSTEM DEPS ======
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
- && rm -rf /var/lib/apt/lists/*
-
-# ====== USER ======
-RUN useradd -m appuser
-
 WORKDIR /app
 
-# ====== PYTHON DEPS (ANTI-CACHE) ======
+# dependências de sistema
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# dependências python
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
- && pip install --no-cache-dir --force-reinstall -r requirements.txt
+# código
+COPY . .
 
-# ====== APP ======
-COPY app ./app
-
-# ====== TMP DIR ======
-RUN mkdir -p ${TMP_DIR} && chown -R appuser:appuser ${TMP_DIR}
-
-USER appuser
+# cria pasta temporária
+RUN mkdir -p tmp_videos
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
