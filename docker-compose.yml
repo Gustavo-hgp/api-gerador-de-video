@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  veo-api:
+    build: .
+    container_name: veo-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./tmp_videos:/tmp_videos
